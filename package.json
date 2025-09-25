@@ -1,0 +1,50 @@
+{
+  "name": "chainblocks",
+  "version": "1.0.0",
+  "description": "Visual Programming for Blockchain Development",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "keywords": [
+    "blockly",
+    "blockchain",
+    "visual-programming",
+    "nextjs",
+    "react"
+  ],
+  "author": "",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@radix-ui/react-slot": "^1.0.2",
+    "@reown/appkit": "^1.8.7",
+    "@reown/appkit-adapter-wagmi": "^1.8.7",
+    "@tanstack/react-query": "^5.90.2",
+    "blockly": "^11.0.0",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.0.0",
+    "lucide-react": "^0.292.0",
+    "next": "^14.0.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "tailwind-merge": "^2.0.0",
+    "viem": "^2.37.8",
+    "wagmi": "^2.17.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "autoprefixer": "^10.4.0",
+    "eslint": "^8.0.0",
+    "eslint-config-next": "^14.0.0",
+    "postcss": "^8.4.0",
+    "tailwindcss": "^3.3.0",
+    "tailwindcss-animate": "^1.0.7",
+    "typescript": "^5.0.0"
+  },
+  "packageManager": "pnpm@10.11.0+sha512.6540583f41cc5f628eb3d9773ecee802f4f9ef9923cc45b69890fb47991d4b092964694ec3a4f738a420c918a333062c8b925d312f42e4f0c263eb603551f977"
+}
