@@ -54,9 +54,12 @@ export class SolidityGenerator extends Blockly.Generator {
       .join('\n')
     const importSection = importLines ? importLines + '\n\n' : ''
 
+    // Add footer comment
+    const footer = code.trim() ? '\n\n// designed with codeblocks' : '// designed with codeblocks'
+
     // Reset imports after generation so they don't leak between runs
     this.imports = []
-    return header + importSection + code
+    return header + importSection + code + footer
   }
 
   // Generate code for a block

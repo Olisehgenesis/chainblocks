@@ -5,7 +5,7 @@ export const solidityBlockDefinitions = [
   // Data Types
   {
     type: 'solidity_uint',
-    message0: 'uint%1 %2',
+    message0: 'uint%1 %2 %3',
     args0: [
       {
         type: 'field_dropdown',
@@ -23,25 +23,39 @@ export const solidityBlockDefinitions = [
         type: 'field_input',
         name: 'NAME',
         text: 'value'
+      },
+      {
+        type: 'field_image',
+        src: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iOCIgY3k9IjgiIHI9IjciIHN0cm9rZT0iIzY2NjY2NiIgc3Ryb2tlLXdpZHRoPSIxLjUiLz4KPHBhdGggZD0iTTggNlYxME04IDZMMTYgOCIgc3Ryb2tlPSIjNjY2NjY2IiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+Cjwvc3ZnPgo=',
+        width: 16,
+        height: 16,
+        alt: 'Info'
       }
     ],
     output: 'Number',
     colour: 210,
-    tooltip: 'Unsigned integer variable'
+    tooltip: 'Unsigned integer variable - stores positive whole numbers'
   },
   {
     type: 'solidity_address',
-    message0: 'address %1',
+    message0: 'address %1 %2',
     args0: [
       {
         type: 'field_input',
         name: 'NAME',
         text: 'addr'
+      },
+      {
+        type: 'field_image',
+        src: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iOCIgY3k9IjgiIHI9IjciIHN0cm9rZT0iIzY2NjY2NiIgc3Ryb2tlLXdpZHRoPSIxLjUiLz4KPHBhdGggZD0iTTggNlYxME04IDZMMTYgOCIgc3Ryb2tlPSIjNjY2NjY2IiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+Cjwvc3ZnPgo=',
+        width: 16,
+        height: 16,
+        alt: 'Info'
       }
     ],
     output: 'String',
     colour: 210,
-    tooltip: 'Ethereum address variable'
+    tooltip: 'Ethereum address variable - stores wallet addresses'
   },
   {
     type: 'solidity_bool',

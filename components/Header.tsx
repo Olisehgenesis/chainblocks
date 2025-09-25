@@ -3,8 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { Github, Settings, Play, Home, Code } from 'lucide-react'
-import { ReusableButton } from '@/components/ReusableButton'
+import { Github, Settings, Home, Code, User, BookOpen, GraduationCap } from 'lucide-react'
 
 export default function Header() {
   const pathname = usePathname()
@@ -50,29 +49,42 @@ export default function Header() {
                   App
                 </Button>
               </Link>
+              <Link href="/profile">
+                <Button 
+                  variant="ghost"
+                  size="sm"
+                  className="text-white hover:bg-white/20"
+                >
+                  <User className="w-4 h-4 mr-2" />
+                  Profile
+                </Button>
+              </Link>
+              <Link href="/docs">
+                <Button 
+                  variant="ghost"
+                  size="sm"
+                  className="text-white hover:bg-white/20"
+                >
+                  <BookOpen className="w-4 h-4 mr-2" />
+                  Docs
+                </Button>
+              </Link>
+              <Link href="/academy">
+                <Button 
+                  variant="ghost"
+                  size="sm"
+                  className="text-white hover:bg-white/20"
+                >
+                  <GraduationCap className="w-4 h-4 mr-2" />
+                  Academy
+                </Button>
+              </Link>
             </div>
 
-            {/* App-specific buttons */}
-            {isAppPage && (
-              <Button 
-                variant="secondary" 
-                size="sm"
-                className="bg-white/20 hover:bg-white/30 text-white border-white/30"
-              >
-                <Play className="w-4 h-4 mr-2" />
-                Run Code
-              </Button>
-            )}
 
             {/* Wallet Connect */}
-            <div className="ml-2 flex items-center gap-2">
+            <div className="ml-2">
               <appkit-button />
-              <ReusableButton className="px-2 py-1 text-xs" onClick={() => {
-                const el = document.querySelector('appkit-button') as HTMLElement | null
-                el?.click()
-              }}>
-                Login
-              </ReusableButton>
             </div>
             
             <Button 
