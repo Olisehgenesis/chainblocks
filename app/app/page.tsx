@@ -77,6 +77,37 @@ export default function App() {
       contents: [
         {
           kind: 'category',
+          name: 'Variables',
+          colour: '180',
+          contents: [
+            {
+              kind: 'block',
+              type: 'solidity_global_variable'
+            },
+            {
+              kind: 'block',
+              type: 'solidity_local_variable'
+            },
+            {
+              kind: 'block',
+              type: 'solidity_variable_assignment'
+            },
+            {
+              kind: 'block',
+              type: 'solidity_variable_reference'
+            },
+            {
+              kind: 'block',
+              type: 'solidity_constant'
+            },
+            {
+              kind: 'block',
+              type: 'solidity_immutable'
+            }
+          ]
+        },
+        {
+          kind: 'category',
           name: 'Data Types',
           colour: '210',
           contents: [

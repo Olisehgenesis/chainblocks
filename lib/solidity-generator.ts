@@ -74,6 +74,45 @@ export class SolidityGenerator extends Blockly.Generator {
     return code || ''
   }
 
+  // Variables
+  solidity_global_variable(block: Blockly.Block): string {
+    const visibility = block.getFieldValue('VISIBILITY')
+    const type = block.getFieldValue('TYPE')
+    const name = block.getFieldValue('NAME')
+    return `${type} ${visibility} ${name};\n`
+  }
+
+  solidity_local_variable(block: Blockly.Block): string {
+    const type = block.getFieldValue('TYPE')
+    const name = block.getFieldValue('NAME')
+    const value = this.valueToCode(block, 'VALUE', this.ORDER_NONE) || ''
+    return `${type} ${name} = ${value};\n`
+  }
+
+  solidity_variable_assignment(block: Blockly.Block): string {
+    const variable = block.getFieldValue('VARIABLE')
+    const value = this.valueToCode(block, 'VALUE', this.ORDER_NONE) || ''
+    return `${variable} = ${value};\n`
+  }
+
+  solidity_variable_reference(block: Blockly.Block): string {
+    const variable = block.getFieldValue('VARIABLE')
+    return variable
+  }
+
+  solidity_constant(block: Blockly.Block): string {
+    const type = block.getFieldValue('TYPE')
+    const name = block.getFieldValue('NAME')
+    const value = this.valueToCode(block, 'VALUE', this.ORDER_NONE) || ''
+    return `${type} constant ${name} = ${value};\n`
+  }
+
+  solidity_immutable(block: Blockly.Block): string {
+    const type = block.getFieldValue('TYPE')
+    const name = block.getFieldValue('NAME')
+    return `${type} immutable ${name};\n`
+  }
+
   // Data Types
   solidity_uint(block: Blockly.Block): string {
     const size = block.getFieldValue('SIZE')

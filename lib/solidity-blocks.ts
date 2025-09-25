@@ -2,6 +2,207 @@ import * as Blockly from 'blockly'
 
 // Solidity Block Definitions
 export const solidityBlockDefinitions = [
+  // Variables
+  {
+    type: 'solidity_global_variable',
+    message0: 'global %1 %2 %3 %4',
+    args0: [
+      {
+        type: 'field_dropdown',
+        name: 'VISIBILITY',
+        options: [
+          ['public', 'public'],
+          ['private', 'private'],
+          ['internal', 'internal']
+        ]
+      },
+      {
+        type: 'field_dropdown',
+        name: 'TYPE',
+        options: [
+          ['uint256', 'uint256'],
+          ['address', 'address'],
+          ['bool', 'bool'],
+          ['string', 'string'],
+          ['bytes32', 'bytes32']
+        ]
+      },
+      {
+        type: 'field_input',
+        name: 'NAME',
+        text: 'myVariable'
+      },
+      {
+        type: 'field_image',
+        src: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iOCIgY3k9IjgiIHI9IjciIHN0cm9rZT0iIzY2NjY2NiIgc3Ryb2tlLXdpZHRoPSIxLjUiLz4KPHBhdGggZD0iTTggNlYxME04IDZMMTYgOCIgc3Ryb2tlPSIjNjY2NjY2IiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+Cjwvc3ZnPgo=',
+        width: 16,
+        height: 16,
+        alt: 'Info'
+      }
+    ],
+    previousStatement: null,
+    nextStatement: null,
+    colour: 180,
+    tooltip: 'Global state variable - stored on blockchain with visibility modifier'
+  },
+  {
+    type: 'solidity_local_variable',
+    message0: 'local %1 %2 = %3 %4',
+    args0: [
+      {
+        type: 'field_dropdown',
+        name: 'TYPE',
+        options: [
+          ['uint256', 'uint256'],
+          ['address', 'address'],
+          ['bool', 'bool'],
+          ['string', 'string'],
+          ['bytes32', 'bytes32']
+        ]
+      },
+      {
+        type: 'field_input',
+        name: 'NAME',
+        text: 'localVar'
+      },
+      {
+        type: 'input_value',
+        name: 'VALUE',
+        check: ['Number', 'String', 'Boolean']
+      },
+      {
+        type: 'field_image',
+        src: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iOCIgY3k9IjgiIHI9IjciIHN0cm9rZT0iIzY2NjY2NiIgc3Ryb2tlLXdpZHRoPSIxLjUiLz4KPHBhdGggZD0iTTggNlYxME04IDZMMTYgOCIgc3Ryb2tlPSIjNjY2NjY2IiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+Cjwvc3ZnPgo=',
+        width: 16,
+        height: 16,
+        alt: 'Info'
+      }
+    ],
+    previousStatement: null,
+    nextStatement: null,
+    colour: 180,
+    tooltip: 'Local variable - exists only during function execution'
+  },
+  {
+    type: 'solidity_variable_assignment',
+    message0: '%1 = %2 %3',
+    args0: [
+      {
+        type: 'field_input',
+        name: 'VARIABLE',
+        text: 'myVar'
+      },
+      {
+        type: 'input_value',
+        name: 'VALUE',
+        check: ['Number', 'String', 'Boolean']
+      },
+      {
+        type: 'field_image',
+        src: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iOCIgY3k9IjgiIHI9IjciIHN0cm9rZT0iIzY2NjY2NiIgc3Ryb2tlLXdpZHRoPSIxLjUiLz4KPHBhdGggZD0iTTggNlYxME04IDZMMTYgOCIgc3Ryb2tlPSIjNjY2NjY2IiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+Cjwvc3ZnPgo=',
+        width: 16,
+        height: 16,
+        alt: 'Info'
+      }
+    ],
+    previousStatement: null,
+    nextStatement: null,
+    colour: 180,
+    tooltip: 'Assign a value to a variable'
+  },
+  {
+    type: 'solidity_variable_reference',
+    message0: '%1 %2',
+    args0: [
+      {
+        type: 'field_input',
+        name: 'VARIABLE',
+        text: 'myVar'
+      },
+      {
+        type: 'field_image',
+        src: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iOCIgY3k9IjgiIHI9IjciIHN0cm9rZT0iIzY2NjY2NiIgc3Ryb2tlLXdpZHRoPSIxLjUiLz4KPHBhdGggZD0iTTggNlYxME04IDZMMTYgOCIgc3Ryb2tlPSIjNjY2NjY2IiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+Cjwvc3ZnPgo=',
+        width: 16,
+        height: 16,
+        alt: 'Info'
+      }
+    ],
+    output: 'String',
+    colour: 180,
+    tooltip: 'Reference a variable value'
+  },
+  {
+    type: 'solidity_constant',
+    message0: 'constant %1 %2 = %3 %4',
+    args0: [
+      {
+        type: 'field_dropdown',
+        name: 'TYPE',
+        options: [
+          ['uint256', 'uint256'],
+          ['address', 'address'],
+          ['bool', 'bool'],
+          ['string', 'string'],
+          ['bytes32', 'bytes32']
+        ]
+      },
+      {
+        type: 'field_input',
+        name: 'NAME',
+        text: 'CONSTANT_VALUE'
+      },
+      {
+        type: 'input_value',
+        name: 'VALUE',
+        check: ['Number', 'String', 'Boolean']
+      },
+      {
+        type: 'field_image',
+        src: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iOCIgY3k9IjgiIHI9IjciIHN0cm9rZT0iIzY2NjY2NiIgc3Ryb2tlLXdpZHRoPSIxLjUiLz4KPHBhdGggZD0iTTggNlYxME04IDZMMTYgOCIgc3Ryb2tlPSIjNjY2NjY2IiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+Cjwvc3ZnPgo=',
+        width: 16,
+        height: 16,
+        alt: 'Info'
+      }
+    ],
+    previousStatement: null,
+    nextStatement: null,
+    colour: 180,
+    tooltip: 'Constant value - cannot be changed after deployment'
+  },
+  {
+    type: 'solidity_immutable',
+    message0: 'immutable %1 %2 %3',
+    args0: [
+      {
+        type: 'field_dropdown',
+        name: 'TYPE',
+        options: [
+          ['uint256', 'uint256'],
+          ['address', 'address'],
+          ['bool', 'bool'],
+          ['string', 'string'],
+          ['bytes32', 'bytes32']
+        ]
+      },
+      {
+        type: 'field_input',
+        name: 'NAME',
+        text: 'immutableVar'
+      },
+      {
+        type: 'field_image',
+        src: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iOCIgY3k9IjgiIHI9IjciIHN0cm9rZT0iIzY2NjY2NiIgc3Ryb2tlLXdpZHRoPSIxLjUiLz4KPHBhdGggZD0iTTggNlYxME04IDZMMTYgOCIgc3Ryb2tlPSIjNjY2NjY2IiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+Cjwvc3ZnPgo=',
+        width: 16,
+        height: 16,
+        alt: 'Info'
+      }
+    ],
+    previousStatement: null,
+    nextStatement: null,
+    colour: 180,
+    tooltip: 'Immutable variable - set once in constructor'
+  },
+
   // Data Types
   {
     type: 'solidity_uint',
