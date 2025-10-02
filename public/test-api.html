@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Test</title>
+</head>
+<body>
+    <h1>API Test</h1>
+    <button id="testBtn">Test API</button>
+    <div id="output"></div>
+
+    <script>
+        const outputDiv = document.getElementById('output');
+        const testBtn = document.getElementById('testBtn');
+
+        function log(message) {
+            console.log(message);
+            outputDiv.innerHTML += '<div>' + message + '</div>';
+        }
+
+        testBtn.addEventListener('click', async () => {
+            log('Testing API endpoints...');
+            
+            try {
+                // Test files endpoint
+                log('Testing /api/ide/files...');
+                const filesResponse = await fetch('/api/ide/files');
+                const filesData = await filesResponse.json();
+                log('Files response: ' + JSON.stringify(filesData, null, 2));
+                
+                // Test compile-all endpoint
+                log('Testing /api/ide/compile-all...');
+                const compileResponse = await fetch('/api/ide/compile-all', {
+                    method: 'POST'
+                });
+                const compileData = await compileResponse.json();
+                log('Compile response: ' + JSON.stringify(compileData, null, 2));
+                
+            } catch (err) {
+                log('❌ API test failed: ' + err.message);
+            }
+        });
+    </script>
+</body>
+</html>

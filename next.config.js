@@ -1,8 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    appDir: true,
-  },
+  
   webpack: (config) => {
     // Handle Blockly's dynamic imports
     config.resolve.fallback = {
@@ -14,4 +12,4 @@ const nextConfig = {
   },
 }
 
-module.exports = nextConfig
+export default nextConfig

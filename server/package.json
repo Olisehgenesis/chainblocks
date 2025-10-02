@@ -1,0 +1,32 @@
+{
+  "name": "chainblocks-server",
+  "version": "1.0.0",
+  "description": "Server-side blockchain operations for ChainBlocks",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js",
+    "compile": "npx hardhat compile",
+    "test": "npx hardhat test"
+  },
+  "dependencies": {
+    "hardhat": "^2.19.0",
+    "ethers": "^6.8.0",
+    "viem": "^2.37.8",
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "@nomicfoundation/hardhat-ethers": "^3.0.5",
+    "@nomicfoundation/hardhat-network-helpers": "^1.0.8",
+    "@nomicfoundation/hardhat-chai-matchers": "^2.0.2",
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "chai": "^4.3.7",
+    "solidity-coverage": "^0.8.5"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/express": "^4.17.21",
+    "@types/cors": "^2.8.17"
+  }
+}

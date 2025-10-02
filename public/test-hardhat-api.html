@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hardhat Compilation Test</title>
+</head>
+<body>
+    <h1>Hardhat Compilation Test</h1>
+    <button id="testBtn">Test Hardhat Compilation</button>
+    <div id="output"></div>
+
+    <script>
+        const outputDiv = document.getElementById('output');
+        const testBtn = document.getElementById('testBtn');
+
+        function log(message) {
+            console.log(message);
+            outputDiv.innerHTML += '<div>' + message + '</div>';
+        }
+
+        testBtn.addEventListener('click', async () => {
+            log('Starting Hardhat compilation test...');
+
+            const contractCode = `// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+
+contract MyContract {
+    uint256 public value;
+    
+    constructor(uint256 initial) {
+        value = initial;
+    }
+    
+    function setValue(uint256 newValue) public {
+        value = newValue;
+    }
+}`;
+
+            try {
+                log('Sending request to API...');
+                const response = await fetch('/api/compile', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        contractCode: contractCode,
+                        contractName: 'MyContract'
+                    })
+                });
+
+                const data = await response.json();
+                log('API Response: ' + JSON.stringify(data, null, 2));
+
+                if (data.success) {
+                    log('✅ Compilation successful!');
+                    log('Contract Name: ' + data.contractName);
+                    log('ABI Length: ' + data.abi.length);
+                    log('Bytecode Length: ' + data.bytecode.length);
+                    log('ABI: ' + JSON.stringify(data.abi, null, 2));
+                } else {
+                    log('❌ Compilation failed: ' + data.error);
+                }
+
+            } catch (err) {
+                log('❌ Request failed: ' + err.message);
+            }
+        });
+    </script>
+</body>
+</html>

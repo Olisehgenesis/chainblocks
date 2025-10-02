@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web-Solc Worker Test</title>
+</head>
+<body>
+    <h1>Web-Solc Worker Test</h1>
+    <button id="testBtn">Test Compilation with web-solc</button>
+    <div id="output"></div>
+
+    <script>
+        const outputDiv = document.getElementById('output');
+        const testBtn = document.getElementById('testBtn');
+
+        function log(message) {
+            console.log(message);
+            outputDiv.innerHTML += '<div>' + message + '</div>';
+        }
+
+        testBtn.addEventListener('click', async () => {
+            log('Starting web-solc compilation test...');
+            
+            const input = {
+                language: 'Solidity',
+                sources: {
+                    'MyContract.sol': {
+                        content: `// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.24;
+
+contract MyContract {
+    uint256 public value;
+    
+    constructor(uint256 initial) {
+        value = initial;
+    }
+    
+    function setValue(uint256 newValue) public {
+        value = newValue;
+    }
+    
+    function getValue() public view returns (uint256) {
+        return value;
+    }
+}`
+                    }
+                },
+                settings: {
+                    optimizer: { 
+                        enabled: true, 
+                        runs: 200 
+                    },
+                    outputSelection: {
+                        '*': {
+                            '*': [
+                                'abi', 
+                                'evm.bytecode.object', 
+                                'evm.deployedBytecode.object',
+                                'evm.gasEstimates'
+                            ]
+                        }
+                    }
+                }
+            };
+
+            try {
+                log('Creating web-solc worker...');
+                const worker = new Worker('/solc-worker-web-solc.js?v=' + Date.now());
+                
+                worker.onmessage = (e) => {
+                    const data = e.data;
+                    log('Worker response received');
+                    
+                    if (data.ok) {
+                        log('✅ Compilation successful!');
+                        log('Output keys: ' + Object.keys(data.output));
+                        
+                        // Check if we have contracts
+                        if (data.output.contracts && data.output.contracts['MyContract.sol']) {
+                            const contract = data.output.contracts['MyContract.sol']['MyContract'];
+                            log('Contract found: MyContract');
+                            log('ABI length: ' + contract.abi.length);
+                            log('Bytecode length: ' + contract.evm.bytecode.object.length);
+                            log('Deployed bytecode length: ' + contract.evm.deployedBytecode.object.length);
+                            
+                            // Show first few ABI entries
+                            log('ABI preview: ' + JSON.stringify(contract.abi.slice(0, 3), null, 2));
+                        }
+                        
+                        // Show any warnings
+                        if (data.output.errors) {
+                            const warnings = data.output.errors.filter(e => e.severity === 'warning');
+                            if (warnings.length > 0) {
+                                log('⚠️ Warnings: ' + warnings.length);
+                                warnings.forEach(w => log('  - ' + w.message));
+                            }
+                        }
+                    } else {
+                        log('❌ Compilation failed: ' + data.error);
+                    }
+                    
+                    // Clean up worker
+                    worker.terminate();
+                };
+                
+                worker.onerror = (err) => {
+                    log('❌ Worker error: ' + err.message);
+                    log('Error details: ' + JSON.stringify(err, null, 2));
+                };
+                
+                log('Sending input to web-solc worker...');
+                worker.postMessage({ input });
+                
+            } catch (err) {
+                log('❌ Failed to create worker: ' + err.message);
+            }
+        });
+    </script>
+</body>
+</html>

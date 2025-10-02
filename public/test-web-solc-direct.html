@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web-Solc Direct Test</title>
+</head>
+<body>
+    <h1>Web-Solc Direct Test (No Worker)</h1>
+    <button id="testBtn">Test Direct Compilation</button>
+    <div id="output"></div>
+
+    <script type="module">
+        const outputDiv = document.getElementById('output');
+        const testBtn = document.getElementById('testBtn');
+
+        function log(message) {
+            console.log(message);
+            outputDiv.innerHTML += '<div>' + message + '</div>';
+        }
+
+        testBtn.addEventListener('click', async () => {
+            log('Starting direct web-solc compilation test...');
+            
+            try {
+                // Try multiple CDN sources for web-solc
+                log('Importing web-solc...');
+                let webSolcModule;
+                
+                const cdnUrls = [
+                    'https://unpkg.com/web-solc@0.7.0/dist/index.js',
+                    'https://cdn.jsdelivr.net/npm/web-solc@0.7.0/dist/index.js',
+                    'https://unpkg.com/web-solc@0.7.0/lib/index.js',
+                    'https://cdn.jsdelivr.net/npm/web-solc@0.7.0/lib/index.js'
+                ];
+                
+                for (const url of cdnUrls) {
+                    try {
+                        log(`Trying ${url}...`);
+                        webSolcModule = await import(url);
+                        log(`✅ Successfully loaded from ${url}`);
+                        break;
+                    } catch (err) {
+                        log(`❌ Failed to load from ${url}: ${err.message}`);
+                    }
+                }
+                
+                if (!webSolcModule) {
+                    throw new Error('Could not load web-solc from any CDN source');
+                }
+                
+                const { fetchAndLoadSolc } = webSolcModule;
+                
+                log('Fetching and loading Solidity compiler...');
+                const solc = await fetchAndLoadSolc('^0.8.0');
+                
+                log('Compiler loaded successfully!');
+                
+                const input = {
+                    language: 'Solidity',
+                    sources: {
+                        'MyContract.sol': {
+                            content: `// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.24;
+
+contract MyContract {
+    uint256 public value;
+    
+    constructor(uint256 initial) {
+        value = initial;
+    }
+    
+    function setValue(uint256 newValue) public {
+        value = newValue;
+    }
+    
+    function getValue() public view returns (uint256) {
+        return value;
+    }
+    
+    function calculate(uint256 a, uint256 b) public pure returns (uint256) {
+        return a + b;
+    }
+}`
+                        }
+                    },
+                    settings: {
+                        optimizer: { 
+                            enabled: true, 
+                            runs: 200 
+                        },
+                        outputSelection: {
+                            '*': {
+                                '*': [
+                                    'abi', 
+                                    'evm.bytecode.object', 
+                                    'evm.deployedBytecode.object',
+                                    'evm.gasEstimates'
+                                ]
+                            }
+                        }
+                    }
+                };
+
+                log('Compiling contract...');
+                const output = await solc.compile(input);
+                
+                log('✅ Compilation successful!');
+                log('Output keys: ' + Object.keys(output));
+                
+                // Check if we have contracts
+                if (output.contracts && output.contracts['MyContract.sol']) {
+                    const contract = output.contracts['MyContract.sol']['MyContract'];
+                    log('Contract found: MyContract');
+                    log('ABI length: ' + contract.abi.length);
+                    log('Bytecode length: ' + contract.evm.bytecode.object.length);
+                    log('Deployed bytecode length: ' + contract.evm.deployedBytecode.object.length);
+                    
+                    // Show ABI
+                    log('ABI: ' + JSON.stringify(contract.abi, null, 2));
+                    
+                    // Show gas estimates if available
+                    if (contract.evm.gasEstimates) {
+                        log('Gas estimates: ' + JSON.stringify(contract.evm.gasEstimates, null, 2));
+                    }
+                }
+                
+                // Show any warnings
+                if (output.errors) {
+                    const warnings = output.errors.filter(e => e.severity === 'warning');
+                    if (warnings.length > 0) {
+                        log('⚠️ Warnings: ' + warnings.length);
+                        warnings.forEach(w => log('  - ' + w.message));
+                    }
+                }
+                
+                // Clean up
+                log('Cleaning up compiler...');
+                solc.stopWorker();
+                log('✅ Test completed successfully!');
+                
+            } catch (err) {
+                log('❌ Compilation failed: ' + err.message);
+                log('Error details: ' + JSON.stringify(err, null, 2));
+            }
+        });
+    </script>
+</body>
+</html>

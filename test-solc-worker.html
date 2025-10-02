@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solc Worker Test</title>
+</head>
+<body>
+    <h1>Solc Worker Test</h1>
+    <button id="testBtn">Test Compilation</button>
+    <div id="output"></div>
+
+    <script>
+        const outputDiv = document.getElementById('output');
+        const testBtn = document.getElementById('testBtn');
+
+        function log(message) {
+            console.log(message);
+            outputDiv.innerHTML += '<div>' + message + '</div>';
+        }
+
+        testBtn.addEventListener('click', async () => {
+            log('Starting compilation test...');
+            
+            const input = {
+                language: 'Solidity',
+                sources: {
+                    'MyContract.sol': {
+                        content: `// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+
+contract MyContract {
+    uint256 public value;
+    constructor(uint256 initial) { value = initial; }
+}`
+                    }
+                },
+                settings: {
+                    optimizer: { enabled: true, runs: 200 },
+                    outputSelection: {
+                        '*': {
+                            '*': ['abi', 'evm.bytecode.object', 'evm.deployedBytecode.object']
+                        }
+                    }
+                }
+            };
+
+            try {
+                const worker = new Worker('/solc-worker.js');
+                
+                worker.onmessage = (e) => {
+                    const data = e.data;
+                    log('Worker response: ' + JSON.stringify(data, null, 2));
+                    
+                    if (data.ok) {
+                        log('✅ Compilation successful!');
+                        log('Output keys: ' + Object.keys(data.output));
+                    } else {
+                        log('❌ Compilation failed: ' + data.error);
+                    }
+                };
+                
+                worker.onerror = (err) => {
+                    log('❌ Worker error: ' + err.message);
+                    log('Error details: ' + JSON.stringify(err, null, 2));
+                };
+                
+                log('Sending input to worker...');
+                worker.postMessage({ input });
+                
+            } catch (err) {
+                log('❌ Failed to create worker: ' + err.message);
+            }
+        });
+    </script>
+</body>
+</html>

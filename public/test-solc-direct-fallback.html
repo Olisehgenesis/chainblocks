@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solc Direct Test (Fallback)</title>
+</head>
+<body>
+    <h1>Solc Direct Test (Fallback Approach)</h1>
+    <button id="testBtn">Test Direct Compilation</button>
+    <div id="output"></div>
+
+    <script>
+        const outputDiv = document.getElementById('output');
+        const testBtn = document.getElementById('testBtn');
+
+        function log(message) {
+            console.log(message);
+            outputDiv.innerHTML += '<div>' + message + '</div>';
+        }
+
+        testBtn.addEventListener('click', async () => {
+            log('Starting direct solc compilation test (fallback approach)...');
+            
+            try {
+                // Load solc-js directly from CDN
+                log('Loading solc-js from CDN...');
+                
+                const script = document.createElement('script');
+                script.src = 'https://unpkg.com/solc@0.8.24/lib/soljson.js';
+                
+                await new Promise((resolve, reject) => {
+                    script.onload = () => {
+                        log('solc-js script loaded');
+                        resolve();
+                    };
+                    script.onerror = () => {
+                        reject(new Error('Failed to load solc-js script'));
+                    };
+                    document.head.appendChild(script);
+                });
+                
+                // Wait for Module to be available
+                log('Waiting for solc Module to initialize...');
+                await new Promise((resolve, reject) => {
+                    let attempts = 0;
+                    const maxAttempts = 50;
+                    
+                    const checkModule = () => {
+                        attempts++;
+                        
+                        if (typeof Module !== 'undefined' && Module && typeof Module.cwrap === 'function') {
+                            log('Module is ready');
+                            resolve();
+                        } else if (attempts >= maxAttempts) {
+                            reject(new Error('Module failed to initialize'));
+                        } else {
+                            setTimeout(checkModule, 100);
+                        }
+                    };
+                    
+                    checkModule();
+                });
+                
+                // Create compiler instance
+                log('Creating compiler instance...');
+                const solc = {
+                    version: function() {
+                        const versionFunc = Module.cwrap('version', 'string', []);
+                        return versionFunc();
+                    },
+                    compile: function(input) {
+                        const compileStandard = Module.cwrap('compileStandard', 'string', ['string']);
+                        return compileStandard(input);
+                    }
+                };
+                
+                // Test the compiler
+                const version = solc.version();
+                log('Compiler version: ' + version);
+                
+                const input = {
+                    language: 'Solidity',
+                    sources: {
+                        'MyContract.sol': {
+                            content: `// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.24;
+
+contract MyContract {
+    uint256 public value;
+    
+    constructor(uint256 initial) {
+        value = initial;
+    }
+    
+    function setValue(uint256 newValue) public {
+        value = newValue;
+    }
+    
+    function getValue() public view returns (uint256) {
+        return value;
+    }
+    
+    function calculate(uint256 a, uint256 b) public pure returns (uint256) {
+        return a + b;
+    }
+}`
+                        }
+                    },
+                    settings: {
+                        optimizer: { 
+                            enabled: true, 
+                            runs: 200 
+                        },
+                        outputSelection: {
+                            '*': {
+                                '*': [
+                                    'abi', 
+                                    'evm.bytecode.object', 
+                                    'evm.deployedBytecode.object',
+                                    'evm.gasEstimates'
+                                ]
+                            }
+                        }
+                    }
+                };
+
+                log('Compiling contract...');
+                const inputString = JSON.stringify(input);
+                const outputString = solc.compile(inputString);
+                const output = JSON.parse(outputString);
+                
+                log('✅ Compilation successful!');
+                log('Output keys: ' + Object.keys(output));
+                
+                // Check if we have contracts
+                if (output.contracts && output.contracts['MyContract.sol']) {
+                    const contract = output.contracts['MyContract.sol']['MyContract'];
+                    log('Contract found: MyContract');
+                    log('ABI length: ' + contract.abi.length);
+                    log('Bytecode length: ' + contract.evm.bytecode.object.length);
+                    log('Deployed bytecode length: ' + contract.evm.deployedBytecode.object.length);
+                    
+                    // Show ABI
+                    log('ABI: ' + JSON.stringify(contract.abi, null, 2));
+                    
+                    // Show gas estimates if available
+                    if (contract.evm.gasEstimates) {
+                        log('Gas estimates: ' + JSON.stringify(contract.evm.gasEstimates, null, 2));
+                    }
+                }
+                
+                // Show any warnings
+                if (output.errors) {
+                    const warnings = output.errors.filter(e => e.severity === 'warning');
+                    if (warnings.length > 0) {
+                        log('⚠️ Warnings: ' + warnings.length);
+                        warnings.forEach(w => log('  - ' + w.message));
+                    }
+                }
+                
+                log('✅ Test completed successfully!');
+                
+            } catch (err) {
+                log('❌ Compilation failed: ' + err.message);
+                log('Error details: ' + JSON.stringify(err, null, 2));
+            }
+        });
+    </script>
+</body>
+</html>

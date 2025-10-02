@@ -6,14 +6,36 @@ export class SolidityGenerator extends Blockly.Generator {
     super('Solidity')
   }
 
-  // Precedence constant used when no specific operator precedence is required
+  // Precedence constants for operator precedence
   public ORDER_NONE: number = 99
+  public ORDER_EQUALITY: number = 9
+  public ORDER_RELATIONAL: number = 8
+  public ORDER_ADDITION: number = 7
+  public ORDER_SUBTRACTION: number = 7
+  public ORDER_MULTIPLICATION: number = 6
+  public ORDER_DIVISION: number = 6
+  public ORDER_MODULO: number = 6
+  public ORDER_LOGICAL_NOT: number = 5
+  public ORDER_LOGICAL_AND: number = 4
+  public ORDER_LOGICAL_OR: number = 3
+  public ORDER_CONDITIONAL: number = 2
+  public ORDER_ASSIGNMENT: number = 1
 
   // External imports to include at the top of the file
   private imports: { path: string, alias?: string }[] = []
+  private license: string = 'MIT'
+  private version: string = '^0.8.24'
 
   public setImports(imports: { path: string, alias?: string }[]) {
     this.imports = imports || []
+  }
+
+  public setLicense(license: string) {
+    this.license = license || 'MIT'
+  }
+
+  public setVersion(version: string) {
+    this.version = version || '^0.8.20'
   }
 
   // Generate code for the entire workspace
@@ -21,23 +43,17 @@ export class SolidityGenerator extends Blockly.Generator {
     // Initialize generator state (handles definitions, name DB, etc.)
     this.init(workspace)
 
-    // Iterate all top-level blocks in a stable order
+    // Get all top-level blocks (both connected and standalone)
     const topBlocks = workspace.getTopBlocks(true)
     let code = ''
-    for (const top of topBlocks) {
-      let current: Blockly.Block | null = top
-      while (current) {
-        if (typeof (current as any).type !== 'string' || !current.isEnabled()) {
-          current = current.getNextBlock()
-          continue
-        }
-        const line = this.blockToCode(current)
-        if (Array.isArray(line)) {
-          code += line[0]
-        } else if (typeof line === 'string') {
-          code += line
-        }
-        current = current.getNextBlock()
+    
+    // Process each top-level block
+    for (const block of topBlocks) {
+      if (!block || !block.isEnabled()) continue
+      
+      const blockCode = this.blockToCode(block)
+      if (blockCode) {
+        code += blockCode
       }
     }
 
@@ -45,7 +61,7 @@ export class SolidityGenerator extends Blockly.Generator {
     code = this.finish(code)
 
     // Optional: prepend SPDX and pragma for Solidity
-    const header = '// SPDX-License-Identifier: MIT\npragma solidity ^0.8.20;\n\n'
+    const header = `// SPDX-License-Identifier: ${this.license}\npragma solidity ${this.version};\n\n`
 
     // Emit imports
     const importLines = (this.imports || [])
@@ -74,12 +90,43 @@ export class SolidityGenerator extends Blockly.Generator {
     return code || ''
   }
 
+  // Generate code for statements (blocks connected to statement inputs)
+  statementToCode(block: Blockly.Block, name: string): string {
+    const targetBlock = block.getInputTargetBlock(name)
+    if (!targetBlock) return ''
+    
+    let code = ''
+    let current: Blockly.Block | null = targetBlock
+    
+    while (current) {
+      if (!current.isEnabled()) {
+        current = current.getNextBlock()
+        continue
+      }
+      
+      const blockCode = this.blockToCode(current)
+      if (blockCode) {
+        code += blockCode
+      }
+      
+      current = current.getNextBlock()
+    }
+    
+    return code
+  }
+
   // Variables
-  solidity_global_variable(block: Blockly.Block): string {
+  solidity_global_variable_declare(block: Blockly.Block): string {
     const visibility = block.getFieldValue('VISIBILITY')
     const type = block.getFieldValue('TYPE')
     const name = block.getFieldValue('NAME')
     return `${type} ${visibility} ${name};\n`
+  }
+
+  solidity_global_variable_assign(block: Blockly.Block): string {
+    const variable = block.getFieldValue('VARIABLE')
+    const value = this.valueToCode(block, 'VALUE', this.ORDER_NONE) || ''
+    return `${variable} = ${value};\n`
   }
 
   solidity_local_variable(block: Blockly.Block): string {
@@ -111,6 +158,220 @@ export class SolidityGenerator extends Blockly.Generator {
     const type = block.getFieldValue('TYPE')
     const name = block.getFieldValue('NAME')
     return `${type} immutable ${name};\n`
+  }
+
+  // Control Flow
+  solidity_if(block: Blockly.Block): string {
+    const condition = this.valueToCode(block, 'CONDITION', this.ORDER_NONE) || 'false'
+    const statements = this.statementToCode(block, 'DO')
+    return `if (${condition}) {\n${statements}}\n`
+  }
+
+  solidity_if_else(block: Blockly.Block): string {
+    const condition = this.valueToCode(block, 'CONDITION', this.ORDER_NONE) || 'false'
+    const ifStatements = this.statementToCode(block, 'DO')
+    const elseStatements = this.statementToCode(block, 'ELSE')
+    return `if (${condition}) {\n${ifStatements}} else {\n${elseStatements}}\n`
+  }
+
+  solidity_for_loop(block: Blockly.Block): string {
+    const init = this.valueToCode(block, 'INIT', this.ORDER_NONE) || ''
+    const condition = this.valueToCode(block, 'CONDITION', this.ORDER_NONE) || 'true'
+    const increment = this.valueToCode(block, 'INCREMENT', this.ORDER_NONE) || ''
+    const statements = this.statementToCode(block, 'DO')
+    return `for (${init}; ${condition}; ${increment}) {\n${statements}}\n`
+  }
+
+  solidity_while_loop(block: Blockly.Block): string {
+    const condition = this.valueToCode(block, 'CONDITION', this.ORDER_NONE) || 'true'
+    const statements = this.statementToCode(block, 'DO')
+    return `while (${condition}) {\n${statements}}\n`
+  }
+
+  solidity_break(block: Blockly.Block): string {
+    return 'break;\n'
+  }
+
+  solidity_continue(block: Blockly.Block): string {
+    return 'continue;\n'
+  }
+
+  // Logic & Comparison
+  solidity_equals(block: Blockly.Block): string {
+    const a = this.valueToCode(block, 'A', this.ORDER_EQUALITY) || '0'
+    const b = this.valueToCode(block, 'B', this.ORDER_EQUALITY) || '0'
+    return `${a} == ${b}`
+  }
+
+  solidity_not_equals(block: Blockly.Block): string {
+    const a = this.valueToCode(block, 'A', this.ORDER_EQUALITY) || '0'
+    const b = this.valueToCode(block, 'B', this.ORDER_EQUALITY) || '0'
+    return `${a} != ${b}`
+  }
+
+  solidity_less_than(block: Blockly.Block): string {
+    const a = this.valueToCode(block, 'A', this.ORDER_RELATIONAL) || '0'
+    const b = this.valueToCode(block, 'B', this.ORDER_RELATIONAL) || '0'
+    return `${a} < ${b}`
+  }
+
+  solidity_greater_than(block: Blockly.Block): string {
+    const a = this.valueToCode(block, 'A', this.ORDER_RELATIONAL) || '0'
+    const b = this.valueToCode(block, 'B', this.ORDER_RELATIONAL) || '0'
+    return `${a} > ${b}`
+  }
+
+  solidity_and(block: Blockly.Block): string {
+    const a = this.valueToCode(block, 'A', this.ORDER_LOGICAL_AND) || 'false'
+    const b = this.valueToCode(block, 'B', this.ORDER_LOGICAL_AND) || 'false'
+    return `${a} && ${b}`
+  }
+
+  solidity_or(block: Blockly.Block): string {
+    const a = this.valueToCode(block, 'A', this.ORDER_LOGICAL_OR) || 'false'
+    const b = this.valueToCode(block, 'B', this.ORDER_LOGICAL_OR) || 'false'
+    return `${a} || ${b}`
+  }
+
+  solidity_not(block: Blockly.Block): string {
+    const bool = this.valueToCode(block, 'BOOL', this.ORDER_LOGICAL_NOT) || 'false'
+    return `!${bool}`
+  }
+
+  solidity_true(block: Blockly.Block): string {
+    return 'true'
+  }
+
+  solidity_false(block: Blockly.Block): string {
+    return 'false'
+  }
+
+  // Math Operations
+  solidity_add(block: Blockly.Block): string {
+    const a = this.valueToCode(block, 'A', this.ORDER_ADDITION) || '0'
+    const b = this.valueToCode(block, 'B', this.ORDER_ADDITION) || '0'
+    return `${a} + ${b}`
+  }
+
+  solidity_subtract(block: Blockly.Block): string {
+    const a = this.valueToCode(block, 'A', this.ORDER_SUBTRACTION) || '0'
+    const b = this.valueToCode(block, 'B', this.ORDER_SUBTRACTION) || '0'
+    return `${a} - ${b}`
+  }
+
+  solidity_multiply(block: Blockly.Block): string {
+    const a = this.valueToCode(block, 'A', this.ORDER_MULTIPLICATION) || '0'
+    const b = this.valueToCode(block, 'B', this.ORDER_MULTIPLICATION) || '0'
+    return `${a} * ${b}`
+  }
+
+  solidity_divide(block: Blockly.Block): string {
+    const a = this.valueToCode(block, 'A', this.ORDER_DIVISION) || '0'
+    const b = this.valueToCode(block, 'B', this.ORDER_DIVISION) || '1'
+    return `${a} / ${b}`
+  }
+
+  solidity_modulo(block: Blockly.Block): string {
+    const a = this.valueToCode(block, 'A', this.ORDER_MODULO) || '0'
+    const b = this.valueToCode(block, 'B', this.ORDER_MODULO) || '1'
+    return `${a} % ${b}`
+  }
+
+  solidity_number(block: Blockly.Block): string {
+    const num = block.getFieldValue('NUM')
+    return num || '0'
+  }
+
+  solidity_string_literal(block: Blockly.Block): string {
+    const text = block.getFieldValue('TEXT')
+    return `"${text}"`
+  }
+
+  // Solidity Global Variables
+  solidity_msg_sender(block: Blockly.Block): string {
+    return 'msg.sender'
+  }
+
+  solidity_msg_value(block: Blockly.Block): string {
+    return 'msg.value'
+  }
+
+  solidity_block_timestamp(block: Blockly.Block): string {
+    return 'block.timestamp'
+  }
+
+  solidity_address_this(block: Blockly.Block): string {
+    return 'address(this)'
+  }
+
+  solidity_this_balance(block: Blockly.Block): string {
+    return 'address(this).balance'
+  }
+
+  // Variable Dropdown
+  solidity_variable_dropdown(block: Blockly.Block): string {
+    const variable = block.getFieldValue('VARIABLE')
+    return variable
+  }
+
+  // Address Operations
+  solidity_address_zero(block: Blockly.Block): string {
+    return 'address(0)'
+  }
+
+  solidity_address_cast(block: Blockly.Block): string {
+    const address = this.valueToCode(block, 'ADDRESS', this.ORDER_NONE) || 'address(0)'
+    return `address(${address})`
+  }
+
+  solidity_address_balance(block: Blockly.Block): string {
+    const address = this.valueToCode(block, 'ADDRESS', this.ORDER_NONE) || 'address(0)'
+    return `${address}.balance`
+  }
+
+  solidity_address_transfer(block: Blockly.Block): string {
+    const address = this.valueToCode(block, 'ADDRESS', this.ORDER_NONE) || 'address(0)'
+    const amount = this.valueToCode(block, 'AMOUNT', this.ORDER_NONE) || '0'
+    return `${address}.transfer(${amount});\n`
+  }
+
+  solidity_address_send(block: Blockly.Block): string {
+    const address = this.valueToCode(block, 'ADDRESS', this.ORDER_NONE) || 'address(0)'
+    const amount = this.valueToCode(block, 'AMOUNT', this.ORDER_NONE) || '0'
+    return `${address}.send(${amount});\n`
+  }
+
+  solidity_address_call(block: Blockly.Block): string {
+    const address = this.valueToCode(block, 'ADDRESS', this.ORDER_NONE) || 'address(0)'
+    const value = this.valueToCode(block, 'VALUE', this.ORDER_NONE) || '0'
+    const data = this.valueToCode(block, 'DATA', this.ORDER_NONE) || '""'
+    return `${address}.call{value: ${value}}(${data});\n`
+  }
+
+  solidity_address_equal(block: Blockly.Block): string {
+    const a = this.valueToCode(block, 'A', this.ORDER_EQUALITY) || 'address(0)'
+    const b = this.valueToCode(block, 'B', this.ORDER_EQUALITY) || 'address(0)'
+    return `${a} == ${b}`
+  }
+
+  solidity_address_not_equal(block: Blockly.Block): string {
+    const a = this.valueToCode(block, 'A', this.ORDER_EQUALITY) || 'address(0)'
+    const b = this.valueToCode(block, 'B', this.ORDER_EQUALITY) || 'address(0)'
+    return `${a} != ${b}`
+  }
+
+  solidity_address_is_zero(block: Blockly.Block): string {
+    const address = this.valueToCode(block, 'ADDRESS', this.ORDER_EQUALITY) || 'address(0)'
+    return `${address} == address(0)`
+  }
+
+  solidity_address_not_zero(block: Blockly.Block): string {
+    const address = this.valueToCode(block, 'ADDRESS', this.ORDER_EQUALITY) || 'address(0)'
+    return `${address} != address(0)`
+  }
+
+  solidity_owner(block: Blockly.Block): string {
+    return 'owner'
   }
 
   // Data Types
@@ -243,6 +504,25 @@ export class SolidityGenerator extends Blockly.Generator {
     return `event ${name}(${params});\n`
   }
 
+  solidity_event_advanced(block: Blockly.Block): string {
+    const name = block.getFieldValue('NAME')
+    const params = this.statementToCode(block, 'PARAMS')
+    return `event ${name}(${params});\n`
+  }
+
+  solidity_event_param(block: Blockly.Block): string {
+    const type = block.getFieldValue('TYPE')
+    const name = block.getFieldValue('NAME')
+    const indexed = block.getFieldValue('INDEXED')
+    const indexedStr = indexed ? ` ${indexed}` : ''
+    
+    // Check if this is the last parameter (no next block)
+    const nextBlock = block.getNextBlock()
+    const comma = nextBlock ? ', ' : ''
+    
+    return `${type}${indexedStr} ${name}${comma}`
+  }
+
   solidity_emit(block: Blockly.Block): string {
     const event = block.getFieldValue('EVENT')
     const params = this.valueToCode(block, 'PARAMS', this.ORDER_NONE) || ''
@@ -314,13 +594,6 @@ export class SolidityGenerator extends Blockly.Generator {
   }
 
   // Control Flow
-  solidity_break(block: Blockly.Block): string {
-    return 'break;\n'
-  }
-
-  solidity_continue(block: Blockly.Block): string {
-    return 'continue;\n'
-  }
 
   // Math & Logic
   solidity_keccak256(block: Blockly.Block): string {
